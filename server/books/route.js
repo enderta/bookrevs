@@ -1,6 +1,8 @@
+
+
 const express = require("express");
 const router = express.Router();
-const userController = require("./controller");
+const bookController = require("./controller");
 const verifyToken = require("../middleware/verifyToken");
 const cors = require("cors");
 const bodyParser = require("body-parser"); // Add this line
@@ -13,13 +15,14 @@ const corsOptions = {
     origin: "*",
     optionsSuccessStatus: 200,
 };
+
 router.use(cors(corsOptions));
 
-router.post('/create', userController.createBook);
-router.get('/books', userController.getBooks);
-router.get('/book/:id', userController.getBookById);
-router.put('/book/:id', userController.updateBook);
-router.delete('/book/:id', userController.deleteBook);
+router.post('/book', verifyToken,bookController.createBook);
+router.get('/books', verifyToken,bookController.getBooks);
+router.get('/book/:id', verifyToken,bookController.getBookById);
+router.put('/book/:id', verifyToken,bookController.updateBook);
+router.delete('/book/:id', verifyToken,bookController.deleteBook);
 
 module.exports = router;
 

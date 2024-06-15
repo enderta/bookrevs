@@ -1,30 +1,18 @@
-/*CREATE TABLE books (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    author VARCHAR(255) NOT NULL,
-    description TEXT,
-    pic_url TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-*/
-
-const bcrypt = require("bcrypt");
 const pool = require("../db.config");
-const jwt = require("jsonwebtoken");
-const secret = "secret";
 
 const createBook = async (title, author, description, pic_url) => {
+  //only admin can create book
     try {
         const response = await pool.query(
-            "insert into books (title, author, description, pic_url) values ($1, $2, $3, $4) returning *;",
-            [title, author, description, pic_url]
+        "INSERT INTO books (title, author, description, pic_url) VALUES ($1, $2, $3, $4) RETURNING *;",
+        [title, author, description, pic_url]
         );
         return response.rows[0];
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        throw new Error("Error creating book");
     }
-}
+};
 
 const getBooks = async () => {
     try {
@@ -32,51 +20,45 @@ const getBooks = async () => {
         return response.rows;
     } catch (error) {
         console.error(error);
+        throw new Error("Error fetching books");
     }
-}
+};
 
-const getBookById = async (req) => {
+const getBookById = async (id) => {
     try {
-        const id = req.params.id;
-        const response = await pool.query(
-            "select * from books where id = $1;",
-            [id]
-        );
+        const response = await pool.query("SELECT * FROM books WHERE id = $1;", [id]);
         if (response.rows.length === 0) {
             return { error: "Book not found" };
         } else {
             return response.rows[0];
         }
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        throw new Error("Error fetching book");
     }
-}
+};
 
-const updateBook = async (req, res) => {
+const updateBook = async (id, title, author, description, pic_url) => {
     try {
-        const id = req.params.id;
-        const {title, author, description, pic_url} = req.body;
         const response = await pool.query(
-            "update books set title = $1, author = $2, description = $3, pic_url = $4 where id = $5 returning *;",
+            "UPDATE books SET title = $1, author = $2, description = $3, pic_url = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *;",
             [title, author, description, pic_url, id]
         );
         return response.rows[0];
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        throw new Error("Error updating book");
     }
-}
+};
 
-const deleteBook = async (req, res) => {
+const deleteBook = async (id) => {
     try {
-        const id = req.params.id;
-        const response = await pool.query(
-            "delete from books where id = $1 returning *;",
-            [id]
-        );
+        const response = await pool.query("DELETE FROM books WHERE id = $1 RETURNING *;", [id]);
         return response.rows[0];
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        throw new Error("Error deleting book");
     }
-}
+};
 
 module.exports = { createBook, getBooks, getBookById, updateBook, deleteBook };

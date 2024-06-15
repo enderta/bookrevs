@@ -13,6 +13,7 @@ const verifyToken = (req, res, next) => {
             return res.status(401).json({ error: "Unauthorized" });
         } else {
             req.decoded = decoded;
+            req.role = decoded.role; // Add this line
             next();
         }
     });

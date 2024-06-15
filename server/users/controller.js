@@ -1,48 +1,56 @@
 const userService = require('./service');
 
-const registerUser = async (req, res) => {
-    const { username, email, password } = req.body;
-    const user = await userService.registerUser(username, email, password);
-    res.json(user);
-};
-
-const getUsers = async (req, res) => {
-    const users = await userService.getUsers();
-    res.json(users);
-};
-
-const getUserById = async (req, res) => {
-    const user = await userService.getUserById(req);
-    if (user.error) {
-        res.status(404).json(user);
-    } else {
-        res.json(user);
+exports.registerUser = async (req, res) => {
+    try {
+        const data = await userService.registerUser(req.body);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: "Error registering user" });
     }
 };
 
-const updateUser = async (req, res) => {
-    await userService.updateUser(req, res);
-};
-
-const deleteUser = async (req, res) => {
-    await userService.deleteUser(req, res);
-};
-
-const loginUser = async (req, res) => {
-    const userData = req.body;
-    const response = await userService.loginUser(userData);
-    if (response.status === 'error') {
-        res.status(401).json(response);
-    } else {
-        res.json(response);
+exports.loginUser = async (req, res) => {
+    try {
+        const data = await userService.loginUser(req.body);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: "Error logging in user" });
     }
 };
 
-module.exports = {
-    registerUser,
-    getUsers,
-    getUserById,
-    updateUser,
-    deleteUser,
-    loginUser
+exports.getUsers = async (req, res) => {
+    try {
+        const data = await userService.getUsers();
+        res.json(data);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error getting users" });
+    }
+};
+
+exports.getUserById = async (req, res) => {
+    try {
+        const data = await userService.getUserById(req.params.id);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: "Error getting user" });
+    }
+};
+
+exports.updateUser = async (req, res) => {
+    try {
+        const data = await userService.updateUser(req.params.id, req.body);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: "Error updating user" });
+    }
+};
+
+exports.deleteUser = async (req, res) => {
+    try {
+        const data = await userService.deleteUser(req.params.id);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: "Error deleting user" });
+    }
 };

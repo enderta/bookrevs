@@ -1,99 +1,37 @@
 const bcrypt = require("bcrypt");
 const pool = require("../db.config");
 const jwt = require("jsonwebtoken");
-const secret = "secret";
 
+exports.registerUser = async (userData) => {
+    const { username, password, email } = userData;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await pool.query(
+        "INSERT INTO users (username, password, email, role) VALUES ($1, $2, $3, 'user') RETURNING *",
+        [username, hashedPassword, email]
+    );
+    return {
+        status: "success",
+        message: `User ${username} registered successfully`,
+        data: user.rows[0],
+    };
+};
 
-const registerUser = async (username, email, password) => {
-    try {
-        let role = 'user'; // default role
-
-        // Check if an admin exists
-        const adminExists = await pool.query(
-            "select * from users where role = 'admin';"
-        );
-
-        // If no admin exists, assign 'admin' role to the new user
-        if (adminExists.rows.length === 0) {
-            role = 'admin';
-        }
-
-        const passwordHash = await bcrypt.hash(password, 10);
-        const response = await pool.query(
-            "insert into users (username, email, password_hash, role) values ($1, $2, $3, $4) returning *;",
-            [username, email, passwordHash, role]
-        );
-        return response.rows[0];
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-const getUsers = async () => {
-    try {
-        const response = await pool.query("SELECT * FROM users");
-        return response.rows;
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-const getUserById = async (req) => {
-    try {
-        const id = req.params.id;
-        const response = await pool.query(
-            "select * from users where id = $1;",
-            [id]
-        );
-        if (response.rows.length === 0) {
-            return { error: "User not found" };
-        } else {
-            return response.rows[0];
-        }
-    } catch (error) {
-        console.log(error);
-    }
-}
-const updateUser = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const {username, email, password, role} = req.body;
-        const passwordHash = await bcrypt.hash(password, 10);
-        const response = await pool.query(
-            "update users set username = $1, email = $2, password_hash = $3, role = $4 where id = $5;",
-            [username, email, passwordHash, role, id]
-        );
-        res.json("User updated successfully");
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-const deleteUser = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const response = await pool.query(
-            "delete from users where id = $1;",
-            [id]
-        );
-        res.json("User deleted successfully");
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-const loginUser = async (userData) => {
-    const {email, password} = userData;
-    const user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+exports.loginUser = async (userData) => {
+    const { username, password } = userData;
+    const user = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
     if (user.rows.length === 0) {
         return {
             status: "error",
             message: "User not found",
         };
     } else {
-        const match = await bcrypt.compare(password, user.rows[0].password_hash);
+        const match = await bcrypt.compare(password, user.rows[0].password);
         if (match) {
-            const token = jwt.sign({id: user.rows[0].id}, secret, {expiresIn: "1h"});
+            const token = jwt.sign(
+                { id: user.rows[0].id, role: user.rows[0].role },
+                process.env.SECRET,
+                { expiresIn: "1h" }
+            );
             return {
                 status: "success",
                 message: "User logged in successfully",
@@ -107,13 +45,62 @@ const loginUser = async (userData) => {
             };
         }
     }
-}
+};
 
-module.exports = {
-    registerUser,
-    getUsers,
-    getUserById,
-    updateUser,
-    deleteUser,
-    loginUser
-}
+exports.getUsers = async () => {
+    try {
+        const result = await pool.query("SELECT * FROM users");
+        return {
+            status: 'success',
+            message: `Retrieved ${result.rows.length} users`,
+            data: result.rows
+        };
+    } catch (err) {
+        console.error(err);
+        throw new Error("Error while getting users from the database");
+    }
+};
+
+exports.getUserById = async (id) => {
+    try {
+        const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+        if (result.rows.length === 0) {
+            return {
+                status: "error",
+                message: "User not found",
+            };
+        } else {
+            return {
+                status: "success",
+                message: `Retrieved user with id ${id}`,
+                data: result.rows[0]
+            };
+        }
+    } catch (err) {
+        console.error(err);
+        throw new Error("Error while getting user from the database");
+    }
+};
+
+exports.updateUser = async (id, userData) => {
+    const { username, password, email } = userData;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await pool.query(
+        "UPDATE users SET username = $1, password = $2, email = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *",
+        [username, hashedPassword, email, id]
+    );
+    return {
+        status: "success",
+        message: `User ${username} updated successfully`,
+        data: user.rows[0],
+    };
+};
+
+exports.deleteUser = async (id) => {
+    const user = await pool.query("DELETE FROM users WHERE id = $1 RETURNING *", [id]);
+    return {
+        status: "success",
+        message: `User ${user.rows[0].username} deleted successfully`,
+        data: user.rows[0],
+    };
+};

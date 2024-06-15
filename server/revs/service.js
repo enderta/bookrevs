@@ -8,12 +8,9 @@
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 */
-
-const bcrypt = require("bcrypt");
+require("bcrypt");
 const pool = require("../db.config");
-const jwt = require("jsonwebtoken");
-const secret = "secret";
-
+require("jsonwebtoken");
 const createReview = async (book_id, user_id, review_text, rating) => {
     try {
         const response = await pool.query(
@@ -84,5 +81,6 @@ module.exports = {
     getReviews,
     getReviewById,
     updateReview,
+    deleteReview
 };
 

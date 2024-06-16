@@ -3,6 +3,7 @@ import {Route, Routes} from "react-router-dom";
 import Register from "./Register";
 import Login from "./Login";
 import Home from "./Home";
+import Books from "./Books";
 
 
 function Pages() {
@@ -17,6 +18,7 @@ function Pages() {
                             <Route path={"/*"} element={<Home/>}/>
                             <Route path="/register" element={<Register/>}/>
                             <Route path="/login" element={<Login/>}/>
+                            <Route path="/books" element={<Books/>}/>
 
                         </>
                     ) : (
@@ -24,6 +26,7 @@ function Pages() {
                             <Route path={"/*"} element={<Home/>}/>
                             <Route path="/register" element={<Register/>}/>
                             <Route path="/login" element={<Login/>}/>
+                            <Route path="/books" element={<Books/>}/>
 
                         </>
                     )
@@ -32,6 +35,7 @@ function Pages() {
                         <Route path={"/*"} element={<Home/>}/>
                         <Route path="/register" element={<Register/>}/>
                         <Route path="/login" element={<Login/>}/>
+                        <Route path="/books" element={<Books/>}/>
                     </>
                 )}
             </Routes>

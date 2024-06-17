@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button } from 'react-bootstrap';
+import {Card, Button, Container, Row, Col} from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
 const Books = () => {
@@ -37,30 +37,55 @@ const Books = () => {
                             <Button variant="outline-primary">Read Reviews</Button>
                         )}
                     </div>
-                    {books.map(book => (
-                        <Card className="mb-4" key={book.id}>
-                            <Card.Img variant="top" src={book.pic_url} />
-                            <Card.Body>
-                                <Card.Title>{book.title}</Card.Title>
-                                <Card.Text>{book.description}</Card.Text>
-                                <Card.Text>Created by {book.author}</Card.Text>
-                                {role === 'admin' && (
-                                    <>
-                                        <Link to={`/edit/${book.id}`}>
-                                            <Button variant="outline-primary">Edit</Button>
-                                        </Link>
-                                        <Button variant="outline-danger" onClick={() => {
-                                            fetch(`http://localhost:3000/api/book/${book.id}`, {
-                                                method: 'DELETE',
-                                                headers: { Authorization: token },
-                                            })
-                                                .then(() => setBooks(books.filter(b => b.id !== book.id)));
-                                        }}>Delete</Button>
-                                    </>
-                                )}
-                            </Card.Body>
-                        </Card>
-                    ))}
+                    <Container>
+                        <h1 className="text-center" style={{color:"goldenrod"}}>Books</h1>
+                        {/* grid style card for books */}
+                        <Row xs={1} md={3} className="g-4">
+                            {books.map((book) => (
+                                <Col key={book.key}>
+                                    <Card className="cards" style={{margin:"5px",background:"goldenrod"}}>
+                                        {book.pic_url && (
+                                            <Card.Img src={book.pic_url} alt={book.title} style={{width: '100%', height: '15vw', objectFit: 'cover'}} />
+                                        )}
+                                        <Card.Body>
+                                            <Card.Title>{book.title}</Card.Title>
+                                            {book.author && (
+                                                <Card.Text>{book.author}</Card.Text>
+                                            )}
+
+                                            <Link to={`/book/${book.id}`}>
+                                                <Button variant="primary">Read Reviews</Button>
+                                            </Link>
+                                            {
+
+                                                role === 'admin' && (
+                                                    <Button
+                                                        variant="outline-danger"
+
+                                                        style={{float: 'right'}}
+                                                        onClick={async () => {
+                                                            const response = await fetch(`http://localhost:3000/api/book/${book.id}`, {
+                                                                method: 'DELETE',
+                                                                headers: {
+                                                                    Authorization: token,
+                                                                },
+                                                            });
+                                                            if (response.status === 200) {
+                                                                setBooks(books.filter(b => b.id !== book.id));
+                                                            }
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                )
+                                            }
+
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            ))}
+                        </Row>
+                    </Container>
                 </>
             )}
         </div>

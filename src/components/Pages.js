@@ -4,6 +4,7 @@ import Register from "./Register";
 import Login from "./Login";
 import Home from "./Home";
 import Books from "./Books";
+import AddBook from "./AddBook";
 
 
 function Pages() {
@@ -19,6 +20,7 @@ function Pages() {
                             <Route path="/register" element={<Register/>}/>
                             <Route path="/login" element={<Login/>}/>
                             <Route path="/books" element={<Books/>}/>
+                            <Route path="/add" element={<AddBook/>}/>
 
                         </>
                     ) : (
